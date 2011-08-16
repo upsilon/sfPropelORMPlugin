@@ -304,7 +304,7 @@ static public function doSelectWithI18n(Criteria \$criteria, \$culture = null, \
   {$this->getI18nTable()->getPhpName()}Peer::addSelectColumns(\$criteria);
   \$criteria->addJoin(array({$this->getLocalColumn()->getConstantName()}, '\''.\$culture.'\''), array({$this->getForeignColumn()->getConstantName()}, {$this->getCultureColumn($this->getI18nTable())->getConstantName()}), \$join_behavior);
 {$mixerHook}
-  \$stmt = BasePeer::doSelect(\$criteria, \$con);
+  \$stmt = {$this->getTable()->getPhpName()}Peer::doSelectStmt(\$criteria, \$con);
 	\$results = array();
 
 	while (\$row = \$stmt->fetch(PDO::FETCH_NUM)) {
