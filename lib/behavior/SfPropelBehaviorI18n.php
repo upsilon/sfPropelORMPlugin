@@ -175,7 +175,7 @@ public function getCurrent{$refPhpName}(\$culture = null)
 
   if (!isset(\$this->current_i18n[\$culture]))
   {
-    \$object = \$this->isNew() ? null : {$this->getI18nTable()->getPhpName()}Peer::retrieveByPK(\$this->getPrimaryKey(), \$culture);
+    \$object = \$this->isNew() || array_key_exists(\$culture, \$this->current_i18n) ? null : {$this->getI18nTable()->getPhpName()}Peer::retrieveByPK(\$this->getPrimaryKey(), \$culture);
     if (\$object)
     {
       \$this->set{$refPhpName}ForCulture(\$object, \$culture);
@@ -193,10 +193,14 @@ public function getCurrent{$refPhpName}(\$culture = null)
 /**
  * Sets the translation object for a culture.
  */
-public function set{$refPhpName}ForCulture({$this->getI18nTable()->getPhpName()} \$object, \$culture)
+public function set{$refPhpName}ForCulture(\$object, \$culture)
 {
   \$this->current_i18n[\$culture] = \$object;
-  \$this->add{$refPhpName}(\$object);
+
+  if (null !== \$object)
+  {
+    \$this->add{$refPhpName}(\$object);
+  }
 }
 
 EOF;
@@ -298,10 +302,9 @@ static public function doSelectWithI18n(Criteria \$criteria, \$culture = null, \
   {$this->getTable()->getPhpName()}Peer::addSelectColumns(\$criteria);
   \$startcol = ({$this->getTable()->getPhpName()}Peer::NUM_COLUMNS - {$this->getTable()->getPhpName()}Peer::NUM_LAZY_LOAD_COLUMNS);
   {$this->getI18nTable()->getPhpName()}Peer::addSelectColumns(\$criteria);
-  \$criteria->addJoin({$this->getLocalColumn()->getConstantName()}, {$this->getForeignColumn()->getConstantName()}, \$join_behavior);
-  \$criteria->add({$this->getCultureColumn($this->getI18nTable())->getConstantName()}, \$culture);
+  \$criteria->addJoin(array({$this->getLocalColumn()->getConstantName()}, '\''.\$culture.'\''), array({$this->getForeignColumn()->getConstantName()}, {$this->getCultureColumn($this->getI18nTable())->getConstantName()}), \$join_behavior);
 {$mixerHook}
-  \$stmt = BasePeer::doSelect(\$criteria, \$con);
+  \$stmt = {$this->getTable()->getPhpName()}Peer::doSelectStmt(\$criteria, \$con);
 	\$results = array();
 
 	while (\$row = \$stmt->fetch(PDO::FETCH_NUM)) {
@@ -329,6 +332,9 @@ static public function doSelectWithI18n(Criteria \$criteria, \$culture = null, \
 
       \$obj1->set{$refPhpName}ForCulture(\$obj2, \$culture);
 		} // if joined row was not null
+    else {
+      \$obj1->set{$refPhpName}ForCulture(null, \$culture);
+    }
 
 		\$results[] = \$obj1;
 	}
